@@ -20,7 +20,7 @@ fun main() {
             val english = parts[0]
             val russian = parts[1]
 
-            val correctAnswersCount = if (parts.size == 3 && parts[2].isNotEmpty()) parts[2].toInt() else 0
+            val correctAnswersCount = parts.getOrNull(2)?.toIntOrNull() ?: 0
 
             dictionary.add(Word(english, russian, correctAnswersCount))
         }
