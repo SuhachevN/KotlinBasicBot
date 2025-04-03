@@ -1,15 +1,32 @@
 package org.example
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-fun main() {
-    val name = "Kotlin"
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    println("Hello, $name!")
+import java.io.File
 
-    for (i in 1..5)
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        println("i = $i")
+data class Word(
+    val english: String,
+    val russian: String,
+    var correctAnswersCount: Int = 0,
+)
+
+fun main() {
+    val wordsFile = File("Dictionary.txt")
+
+    val dictionary = mutableListOf<Word>()
+
+    wordsFile.forEachLine { line ->
+        val parts = line.split("|")
+
+        if (parts.size >= 3) {
+            val english = parts[0]
+            val russian = parts[1]
+
+            val correctAnswersCount = parts.getOrNull(2)?.toIntOrNull() ?: 0
+
+            dictionary.add(Word(english, russian, correctAnswersCount))
+        }
+    }
+
+    for (word in dictionary) {
+        println("${word.english}|${word.russian}|${word.correctAnswersCount}")
+    }
 }
