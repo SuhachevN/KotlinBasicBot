@@ -19,7 +19,7 @@ fun main() {
             "2" -> {
 
                 val totalCount = dictionary.size
-                val learnedCount = dictionary.filter { it.correctAnswersCount >= 3 }.size
+                val learnedCount = dictionary.filter { it.correctAnswersCount >= THREE }.size
                 val percent = if (totalCount > 0) (learnedCount * 100 / totalCount).toString() + "%" else "0%"
 
                 println("Вы выбрали 'Статистика'.")
@@ -37,3 +37,4 @@ fun main() {
         }
     }
 }
+const val THREE = 3
