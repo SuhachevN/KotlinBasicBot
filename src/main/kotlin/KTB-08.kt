@@ -1,113 +1,123 @@
 package org.example
+import java.io.File
 
-fun saveDictionary(dictionary: List<Word>, fileName: String) {
-    val file = File(fileName)
-    file.printWriter().use { writer ->
-        dictionary.forEach {
-            writer.println("${it.english}|${it.russian}|${it.correctAnswersCount}")
-        }
-    }
-}
+data class Word(
+    val word: String,
+    val translation: String,
+    var correctAnswersCount: Int = 0
+)
 
 fun main() {
-    val dictionary = loadDictionary("Dictionary.txt")
+    val dictionary = loadDictionary()
 
     while (true) {
-        println("\nМеню:")
-        println("1 - Учить слова")
-        println("2 - Статистика")
-        println("0 - Выход")
+        println("\nМеню: ")
+        println("1 – Учить слова")
+        println("2 – Статистика")
+        println("0 – Выход")
 
-        print("Ваш выбор: ")
-        val input = readLine()?.trim()
-
-        when (input) {
-            "1" -> {
-                println("Вы выбрали 'Учить слова'.")
-
-                val notLearnedList = dictionary.filter { it.correctAnswersCount < 3 }
-
-                if (notLearnedList.isEmpty()) {
-                    println("Все слова в словаре выучены!")
-                    continue
-                }
-
-                var isContinueLearning = true
-                while (isContinueLearning && notLearnedList.isNotEmpty()) {
-
-                    val currentWord = notLearnedList.random()
-
-                    val questionWords = mutableListOf(currentWord)
-                    repeat(3) {
-                        val newWord = notLearnedList.random()
-                        if (!questionWords.contains(newWord)) {
-                            questionWords.add(newWord)
-                        }
-                    }
-
-                    questionWords.shuffle()
-
-                    println("\n${currentWord.english}:")
-                    for ((index, word) in questionWords.withIndex()) {
-                        println("${index + 1} - ${word.russian}")
-                    }
-
-                    println("----------")
-                    println("0 - Вернуться в меню")
-
-                    print("Ваш ответ: ")
-                    val userInput = readLine()?.trim()?.toIntOrNull()
-
-                    if (userInput == 0) {
-                        println("Возвращение в главное меню...")
-                        isContinueLearning = false
-                    } else if (userInput != null && userInput in 1..4) {
-                        val selectedWord = questionWords[userInput - 1]
-
-                        if (selectedWord.english == currentWord.english) {
-                            println("Правильно!")
-                            currentWord.correctAnswersCount++
-
-                            saveDictionary(dictionary, "Dictionary.txt")
-
-                            if (currentWord.correctAnswersCount >= 3) {
-                                notLearnedList.remove(currentWord)
-                            }
-                        } else {
-                            println("Неправильно! ${currentWord.english} – это ${currentWord.russian}.")
-                        }
-                    } else {
-                        println("Введен неверный номер ответа. Попробуйте еще раз.")
-                    }
-
-                    if (notLearnedList.isEmpty()) {
-                        println("Поздравляем! Все слова выучены!")
-                        break
-                    }
-                }
-
-                if (notLearnedList.isEmpty()) {
-                    println("Поздравляем! Все слова выучены!")
-                }
-            }
-
-            "2" -> {
-                val totalCount = dictionary.size
-                val learnedCount = dictionary.filter { it.correctAnswersCount >= 3 }.size
-                val percent = if (totalCount > 0) (learnedCount * 100 / totalCount).toString() + "%" else "0%"
-
-                println("Вы выбрали 'Статистика'.")
-                println("Выучено $learnedCount из $totalCount слов | $percent")
-            }
-
-            "0" -> {
-                println("Завершение программы...")
-                break
-            }
-
-            else -> {
-                println("Введите число 1, 2 или 0.")
-            }
+        when (readln()) {
+            MENU_LEARN -> learnWords(dictionary)
+            MENU_STATS -> showStatistics(dictionary)
+            MENU_EXIT -> break
+            else -> println("Введите число 1, 2 или 0")
         }
     }
 }
+
+fun loadDictionary(): MutableList<Word> {
+    val dictionary = mutableListOf<Word>()
+    val file = File(FILE_NAME)
+    if (!file.exists()) {
+        println("Файл $FILE_NAME не найден.")
+        return dictionary
+    }
+
+    file.forEachLine { line ->
+        val parts = line.split("|").map { it.trim() }
+        val wordAndTranslation = parts.getOrNull(0)?.split(" - ") ?: return@forEachLine
+        val word = wordAndTranslation.getOrNull(0) ?: return@forEachLine
+        val translation = wordAndTranslation.getOrNull(1) ?: return@forEachLine
+        val correctAnswers = parts.getOrNull(1)?.toIntOrNull() ?: 0
+
+        dictionary.add(Word(word, translation, correctAnswers))
+    }
+
+    println("Словарь загружен:")
+    dictionary.forEach {
+        println("${it.word} - ${it.translation} | ${it.correctAnswersCount}")
+    }
+
+    return dictionary
+}
+
+fun saveDictionary(dictionary: List<Word>) {
+    val file = File(FILE_NAME)
+    file.writeText("")
+    dictionary.forEach {
+        file.appendText("${it.word} - ${it.translation} | ${it.correctAnswersCount}\n")
+    }
+}
+
+fun showStatistics(dictionary: List<Word>) {
+    val totalCount = dictionary.size
+    val learnedWords = dictionary.filter { it.correctAnswersCount >= LEARNED_THRESHOLD }
+    val learnedCount = learnedWords.size
+    val percent = if (totalCount > 0) (learnedCount * 100 / totalCount) else 0
+    println("\nВыучено $learnedCount из $totalCount слов | $percent%")
+}
+
+fun learnWords(dictionary: MutableList<Word>) {
+    while (true) {
+        val notLearned = dictionary.filter { it.correctAnswersCount < LEARNED_THRESHOLD }
+
+        if (notLearned.isEmpty()) {
+            println("Поздравляем! Все слова выучены.")
+            return
+        }
+
+        val questionWords = notLearned.shuffled().take(OPTIONS_COUNT).toMutableList()
+        if (questionWords.size < OPTIONS_COUNT) {
+            val extras = dictionary.filter { it !in questionWords }.shuffled()
+                .take(OPTIONS_COUNT - questionWords.size)
+            questionWords.addAll(extras)
+        }
+
+        questionWords.shuffle()
+        val correctAnswer = questionWords.random()
+        val correctAnswerId = questionWords.indexOf(correctAnswer) + 1
+
+        println("\n${correctAnswer.word}:")
+        questionWords.forEachIndexed { index, word ->
+            println(" ${index + 1} - ${word.translation}")
+        }
+        println(" ----------")
+        println(" 0 - Меню")
+
+        print("> ")
+        val userAnswerInput = readlnOrNull() ?: continue
+        if (userAnswerInput == MENU_EXIT) break
+
+        val userAnswer = userAnswerInput.toIntOrNull()
+        if (userAnswer == null || userAnswer !in 1..OPTIONS_COUNT) {
+            println("Введите число от 1 до $OPTIONS_COUNT или 0 для выхода в меню")
+            continue
+        }
+
+        val selectedWord = questionWords[userAnswer - 1]
+        if (selectedWord == correctAnswer) {
+            println("Правильно!")
+            correctAnswer.correctAnswersCount++
+            saveDictionary(dictionary)
+        } else {
+            println("Неправильно! ${correctAnswer.word} – это ${correctAnswer.translation}")
+        }
+    }
+}
+
+const val LEARNED_THRESHOLD = 3
+const val OPTIONS_COUNT = 4
+const val MENU_EXIT = "0"
+const val MENU_LEARN = "1"
+const val MENU_STATS = "2"
+const val FILE_NAME = "Dictionary.txt"
