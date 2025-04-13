@@ -1,4 +1,24 @@
-cat - кошка | 9
-pen - ручка | 6
-thank you - спасибо | 6
-hat - шляпа | 2
+сat | кошка | 10
+pen | ручка | 9
+thank you | спасибо | 10
+hat | шляпа | 3
+apple | яблоко | 1
+book | книга | 3
+table | стол | 1
+chair | стул | 0
+window | окно | 0
+door | дверь | 3
+car | машина | 3
+tree | дерево | 0
+water | вода | 2
+sun | солнце | 0
+moon | луна | 1
+dog | собака | 1
+bird | птица | 1
+milk | молоко | 3
+bread | хлеб | 0
+school | школа | 2
+computer | компьютер | 2
+phone | телефон | 1
+music | музыка | 1
+city | город | 1

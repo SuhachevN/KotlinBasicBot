@@ -35,17 +35,11 @@ fun loadDictionary(): MutableList<Word> {
 
     file.forEachLine { line ->
         val parts = line.split("|").map { it.trim() }
-        val wordAndTranslation = parts.getOrNull(0)?.split(" - ") ?: return@forEachLine
-        val word = wordAndTranslation.getOrNull(0) ?: return@forEachLine
-        val translation = wordAndTranslation.getOrNull(1) ?: return@forEachLine
-        val correctAnswers = parts.getOrNull(1)?.toIntOrNull() ?: 0
+        val word = parts.getOrNull(0) ?: return@forEachLine
+        val translation = parts.getOrNull(1) ?: return@forEachLine
+        val correctAnswers = parts.getOrNull(2)?.toIntOrNull() ?: 0
 
         dictionary.add(Word(word, translation, correctAnswers))
-    }
-
-    println("Словарь загружен:")
-    dictionary.forEach {
-        println("${it.word} - ${it.translation} | ${it.correctAnswersCount}")
     }
 
     return dictionary
@@ -55,7 +49,7 @@ fun saveDictionary(dictionary: List<Word>) {
     val file = File(FILE_NAME)
     file.writeText("")
     dictionary.forEach {
-        file.appendText("${it.word} - ${it.translation} | ${it.correctAnswersCount}\n")
+        file.appendText("${it.word} | ${it.translation} | ${it.correctAnswersCount}\n")
     }
 }
 
@@ -76,23 +70,24 @@ fun learnWords(dictionary: MutableList<Word>) {
             return
         }
 
-        val questionWords = notLearned.shuffled().take(OPTIONS_COUNT).toMutableList()
+        var questionWords = notLearned.shuffled().take(OPTIONS_COUNT)
         if (questionWords.size < OPTIONS_COUNT) {
             val extras = dictionary.filter { it !in questionWords }.shuffled()
                 .take(OPTIONS_COUNT - questionWords.size)
-            questionWords.addAll(extras)
+            questionWords = (questionWords + extras).shuffled()
         }
 
-        questionWords.shuffle()
         val correctAnswer = questionWords.random()
         val correctAnswerId = questionWords.indexOf(correctAnswer) + 1
 
-        println("\n${correctAnswer.word}:")
-        questionWords.forEachIndexed { index, word ->
-            println(" ${index + 1} - ${word.translation}")
-        }
-        println(" ----------")
-        println(" 0 - Меню")
+        val variants = questionWords
+            .mapIndexed { index, word -> " ${index + 1} – ${word.translation}" }
+            .joinToString(
+                separator = "\n",
+                prefix = "\n${correctAnswer.word}\n",
+                postfix = "\n ----------\n 0 - Меню"
+            )
+        println(variants)
 
         print("> ")
         val userAnswerInput = readlnOrNull() ?: continue
@@ -104,8 +99,7 @@ fun learnWords(dictionary: MutableList<Word>) {
             continue
         }
 
-        val selectedWord = questionWords[userAnswer - 1]
-        if (selectedWord == correctAnswer) {
+        if (userAnswer == correctAnswerId) {
             println("Правильно!")
             correctAnswer.correctAnswersCount++
             saveDictionary(dictionary)
