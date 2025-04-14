@@ -1,4 +1,4 @@
-package org.example
+package ru.androidsprint.englishTrainer
 import java.io.File
 
 data class Word(
@@ -25,7 +25,7 @@ fun main() {
     }
 }
 
-fun loadDictionary(): MutableList<Word> {
+fun loadDictionary(): List<Word> {
     val dictionary = mutableListOf<Word>()
     val file = File(FILE_NAME)
     if (!file.exists()) {
@@ -61,7 +61,7 @@ fun showStatistics(dictionary: List<Word>) {
     println("\nВыучено $learnedCount из $totalCount слов | $percent%")
 }
 
-fun learnWords(dictionary: MutableList<Word>) {
+fun learnWords(dictionary: List<Word>) {
     while (true) {
         val notLearned = dictionary.filter { it.correctAnswersCount < LEARNED_THRESHOLD }
 
