@@ -1,4 +1,24 @@
-hello|привет|0
-dog|собака|0
-cat|кошка|0
-thank you|спасибо|0
+сat | кошка | 0
+pen | ручка | 0
+thank you | спасибо | 0
+hat | шляпа | 0
+apple | яблоко | 0
+book | книга | 0
+table | стол | 0
+chair | стул | 0
+window | окно | 0
+door | дверь | 0
+car | машина | 0
+tree | дерево | 0
+water | вода | 0
+sun | солнце | 0
+moon | луна | 0
+dog | собака | 0
+bird | птица | 0
+milk | молоко | 0
+bread | хлеб | 0
+school | школа | 0
+computer | компьютер | 0
+phone | телефон | 0
+music | музыка | 0
+city | город | 0
