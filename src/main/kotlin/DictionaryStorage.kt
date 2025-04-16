@@ -4,7 +4,7 @@ import java.io.File
 
 class DictionaryStorage(private val fileName: String) {
 
-    fun load(): MutableList<Word> {
+    fun load(): List<Word> {
         val dictionary = mutableListOf<Word>()
         val file = File(fileName)
         if (!file.exists()) {

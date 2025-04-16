@@ -2,7 +2,7 @@ package ru.androidsprint.englishTrainer
 
 class Trainer(private val storage: DictionaryStorage) {
 
-    val dictionary = storage.load()
+    private val dictionary = storage.load()
 
     fun startLearning() {
         while (true) {
@@ -15,7 +15,7 @@ class Trainer(private val storage: DictionaryStorage) {
 
             var questionWords = notLearned.randomSelection(OPTIONS_COUNT)
             if (questionWords.size < OPTIONS_COUNT) {
-                val extras = dictionary.filter { it !in questionWords }.shuffled()
+                val extras = dictionary.filter { it.correctAnswersCount >= LEARNED_THRESHOLD }.shuffled()
                     .take(OPTIONS_COUNT - questionWords.size)
                 questionWords = (questionWords + extras).shuffled()
             }
@@ -46,11 +46,10 @@ class Trainer(private val storage: DictionaryStorage) {
         }
     }
 
-    fun showStats() {
+    fun getStatistics(): Statistic {
         val learned = dictionary.count { it.correctAnswersCount >= LEARNED_THRESHOLD }
         val total = dictionary.size
-        val percent = learned.toPercentOf(total)
-        println("\nВыучено $learned из $total слов | $percent%")
+        return Statistic(learned, total)
     }
 }
 

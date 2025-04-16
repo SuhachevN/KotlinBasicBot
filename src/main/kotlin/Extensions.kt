@@ -22,7 +22,3 @@ fun List<Word>.formatQuestion(correctAnswer: Word): String {
         appendLine(" ----------\n 0 - Меню")
     }
 }
-
-
-
-

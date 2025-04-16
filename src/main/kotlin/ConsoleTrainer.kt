@@ -9,7 +9,10 @@ fun main() {
 
         when (readlnOrNull()?.trim()) {
             "1" -> trainer.startLearning()
-            "2" -> trainer.showStats()
+            "2" -> {
+                val stats = trainer.getStatistics()
+                println("\nВыучено ${stats.learned} из ${stats.total} слов | ${stats.percent}%")
+            }
             "0" -> {
                 println("Пока!")
                 return
