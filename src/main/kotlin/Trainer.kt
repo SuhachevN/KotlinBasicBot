@@ -1,6 +1,6 @@
 package ru.androidsprint.englishTrainer
 
-class Trainer(private val storage: DictionaryStorage) {
+class Trainer(storage: DictionaryStorage) {
 
     private val dictionary = storage.load()
 
@@ -21,28 +21,8 @@ class Trainer(private val storage: DictionaryStorage) {
             }
 
             val correctAnswer = questionWords.random()
-            val correctIndex = questionWords.indexOf(correctAnswer) + 1
-
             val variants = questionWords.formatQuestion(correctAnswer)
             println(variants)
-
-            print("> ")
-            val input = readlnOrNull()?.trim()
-            if (input == "0") return
-
-            val answer = input?.toIntOrNull()
-            if (answer == null || answer !in 1..OPTIONS_COUNT) {
-                println("Введите число от 1 до $OPTIONS_COUNT или 0 для выхода в меню")
-                continue
-            }
-
-            if (answer == correctIndex) {
-                println("Правильно!")
-                correctAnswer.correctAnswersCount++
-                storage.save(dictionary)
-            } else {
-                println("Неправильно! ${correctAnswer.word} – это ${correctAnswer.translation}")
-            }
         }
     }
 
