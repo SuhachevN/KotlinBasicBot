@@ -1,17 +1,36 @@
 package ru.androidsprint.englishTrainer
 
 fun main() {
-    val storage = DictionaryStorage(FILE_NAME)
-    val trainer = Trainer(storage)
+    val trainer = LearnWordsTrainer()
 
     while (true) {
         printMenu()
 
         when (readlnOrNull()?.trim()) {
-            "1" -> trainer.startLearning()
+            "1" -> {
+                var question: Question?
+                while (true) {
+                    question = trainer.getNextQuestion()
+                    if (question == null) {
+                        println("Поздравляем! Все слова выучены.")
+                        break
+                    }
+                    println(question.variants.formatQuestion(question.correctAnswer))
+
+                    val userAnswer = readlnOrNull()?.toIntOrNull()
+                    if (userAnswer == 0) break
+
+                    val isCorrect = trainer.checkAnswer(userAnswer)
+                    if (isCorrect) {
+                        println("Правильно!")
+                    } else {
+                        println("Неправильно!")
+                    }
+                }
+            }
             "2" -> {
                 val stats = trainer.getStatistics()
-                println("\nВыучено ${stats.learned} из ${stats.total} слов | ${stats.percent}%")
+                println("\nВыучено ${stats.learnedCount} из ${stats.totalCount} слов | ${stats.percent}%")
             }
             "0" -> {
                 println("Пока!")
@@ -21,6 +40,7 @@ fun main() {
         }
     }
 }
+
 
 const val LEARNED_THRESHOLD = 3
 const val OPTIONS_COUNT = 4

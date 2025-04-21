@@ -1,36 +1,81 @@
 package ru.androidsprint.englishTrainer
 
-class Trainer(storage: DictionaryStorage) {
+import java.io.File
 
-    private val dictionary = storage.load()
+class Statistics(
+    val totalCount: Int,
+    val learnedCount: Int,
+    val percent: Int,
+)
 
-    fun startLearning() {
-        while (true) {
-            val notLearned = dictionary.filter { it.correctAnswersCount < LEARNED_THRESHOLD }
+data class Question(
+    val variants: List<Word>,
+    val correctAnswer: Word,
+)
 
-            if (notLearned.isEmpty()) {
-                println("Поздравляем! Все слова выучены.")
-                return
+class LearnWordsTrainer {
+
+    private var question: Question? = null
+    private val dictionary = loadDictionary()
+
+    fun getStatistics(): Statistics {
+        val totalCount = dictionary.size
+        val learnedCount = dictionary.count { it.correctAnswersCount >= LEARNED_THRESHOLD }
+        val percent = learnedCount.toPercentOf(totalCount)
+        return Statistics(totalCount, learnedCount, percent)
+    }
+
+    fun getNextQuestion(): Question? {
+        val notLearnedList = dictionary.filter { it.correctAnswersCount < LEARNED_THRESHOLD }
+        if (notLearnedList.isEmpty()) return null
+        val questionWords = notLearnedList.randomSelection(OPTIONS_COUNT)
+        val correctAnswer = questionWords.random()
+        question = Question(
+            variants = questionWords,
+            correctAnswer = correctAnswer,
+        )
+        return question
+    }
+
+    fun checkAnswer(userAnswerIndex: Int?): Boolean {
+        return question?.let {
+            val correctAnswerId = it.variants.indexOf(it.correctAnswer)
+            if (correctAnswerId == userAnswerIndex) {
+                it.correctAnswer.correctAnswersCount++
+                saveDictionary(dictionary)
+                true
+            } else {
+                false
             }
+        } ?: false
+    }
 
-            var questionWords = notLearned.randomSelection(OPTIONS_COUNT)
-            if (questionWords.size < OPTIONS_COUNT) {
-                val extras = dictionary.filter { it.correctAnswersCount >= LEARNED_THRESHOLD }.shuffled()
-                    .take(OPTIONS_COUNT - questionWords.size)
-                questionWords = (questionWords + extras).shuffled()
+    private fun loadDictionary(): List<Word> {
+        try {
+            val dictionary = mutableListOf<Word>()
+            val wordsFile = File(FILE_NAME)
+
+            for (string in wordsFile.readLines()) {
+                val split = string.split("|")
+                val word = Word(
+                    word = split[0],
+                    translation = split[1],
+                    correctAnswersCount = split[2].toIntOrNull() ?: 0
+                )
+                dictionary.add(word)
             }
-
-            val correctAnswer = questionWords.random()
-            val variants = questionWords.formatQuestion(correctAnswer)
-            println(variants)
+            return dictionary
+        } catch (e: Exception) {
+            throw IllegalStateException("Некорректный файл: $e")
         }
     }
 
-    fun getStatistics(): Statistic {
-        val learned = dictionary.count { it.correctAnswersCount >= LEARNED_THRESHOLD }
-        val total = dictionary.size
-        return Statistic(learned, total)
+    private fun saveDictionary(words: List<Word>) {
+        val wordsFile = File(FILE_NAME)
+        wordsFile.writeText("")
+        for (word in words) {
+            wordsFile.appendText("${word.word}|${word.translation}|${word.correctAnswersCount}\n")
+        }
     }
+
 }
-
-
