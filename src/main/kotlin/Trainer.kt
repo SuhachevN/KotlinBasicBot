@@ -14,7 +14,6 @@ data class Question(
 )
 
 class LearnWordsTrainer {
-
     private var question: Question? = null
     private val dictionary = loadDictionary()
 
@@ -28,7 +27,7 @@ class LearnWordsTrainer {
     fun getNextQuestion(): Question? {
         val notLearnedList = dictionary.filter { it.correctAnswersCount < LEARNED_THRESHOLD }
         if (notLearnedList.isEmpty()) return null
-        val questionWords = notLearnedList.randomSelection(OPTIONS_COUNT)
+        val questionWords = notLearnedList.shuffled().take(OPTIONS_COUNT)
         val correctAnswer = questionWords.random()
         question = Question(
             variants = questionWords,
@@ -38,16 +37,15 @@ class LearnWordsTrainer {
     }
 
     fun checkAnswer(userAnswerIndex: Int?): Boolean {
-        return question?.let {
-            val correctAnswerId = it.variants.indexOf(it.correctAnswer)
-            if (correctAnswerId == userAnswerIndex) {
-                it.correctAnswer.correctAnswersCount++
-                saveDictionary(dictionary)
-                true
-            } else {
-                false
-            }
-        } ?: false
+        val currentQuestion = question ?: return false
+        val correctAnswerId = currentQuestion.variants.indexOf(currentQuestion.correctAnswer)
+
+        if (userAnswerIndex != null && correctAnswerId != -1 && userAnswerIndex == correctAnswerId + 1) {
+            currentQuestion.correctAnswer.correctAnswersCount++
+            saveDictionary(dictionary)
+            return true
+        }
+        return false
     }
 
     private fun loadDictionary(): List<Word> {

@@ -41,7 +41,6 @@ fun main() {
     }
 }
 
-
 const val LEARNED_THRESHOLD = 3
 const val OPTIONS_COUNT = 4
 const val FILE_NAME = "Dictionary.txt"

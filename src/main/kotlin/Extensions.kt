@@ -3,9 +3,6 @@ package ru.androidsprint.englishTrainer
 fun Int.toPercentOf(total: Int): Int =
     if (total == 0) 0 else (this * 100) / total
 
-fun <T> List<T>.randomSelection(count: Int): List<T> =
-    if (this.size <= count) this.shuffled() else this.shuffled().take(count)
-
 fun printMenu() {
     println("\nМеню: ")
     println("1 – Учить слова")
