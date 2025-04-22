@@ -1,7 +1,12 @@
 package ru.androidsprint.englishTrainer
 
 fun main() {
-    val trainer = LearnWordsTrainer()
+    val trainer = try {
+        LearnWordsTrainer(3, 4)
+    } catch (_: Exception) {
+        println("Невозможно загрузить словарь")
+        return
+    }
 
     while (true) {
         printMenu()
@@ -24,7 +29,7 @@ fun main() {
                     if (isCorrect) {
                         println("Правильно!")
                     } else {
-                        println("Неправильно!")
+                        println("Неправильно! ${question.correctAnswer.word} - ${question.correctAnswer.translation}")
                     }
                 }
             }
@@ -40,7 +45,4 @@ fun main() {
         }
     }
 }
-
-const val LEARNED_THRESHOLD = 3
-const val OPTIONS_COUNT = 4
 const val FILE_NAME = "Dictionary.txt"

@@ -13,21 +13,27 @@ data class Question(
     val correctAnswer: Word,
 )
 
-class LearnWordsTrainer {
+class LearnWordsTrainer(private val learnedAnswerCount: Int = 3, private val countOfQuestionsWords: Int = 4) {
     private var question: Question? = null
     private val dictionary = loadDictionary()
 
     fun getStatistics(): Statistics {
         val totalCount = dictionary.size
-        val learnedCount = dictionary.count { it.correctAnswersCount >= LEARNED_THRESHOLD }
+        val learnedCount = dictionary.count { it.correctAnswersCount >= learnedAnswerCount }
         val percent = learnedCount.toPercentOf(totalCount)
         return Statistics(totalCount, learnedCount, percent)
     }
 
     fun getNextQuestion(): Question? {
-        val notLearnedList = dictionary.filter { it.correctAnswersCount < LEARNED_THRESHOLD }
+        val notLearnedList = dictionary.filter { it.correctAnswersCount < learnedAnswerCount }
         if (notLearnedList.isEmpty()) return null
-        val questionWords = notLearnedList.shuffled().take(OPTIONS_COUNT)
+        val questionWords = if (notLearnedList.size < countOfQuestionsWords) {
+            val learnedList = dictionary.filter {it.correctAnswersCount >= learnedAnswerCount}.shuffled()
+            notLearnedList.shuffled().take(countOfQuestionsWords) + learnedList.take(countOfQuestionsWords - notLearnedList.size)
+        } else {
+            notLearnedList.shuffled().take(countOfQuestionsWords)
+        }.shuffled()
+
         val correctAnswer = questionWords.random()
         question = Question(
             variants = questionWords,
@@ -49,7 +55,6 @@ class LearnWordsTrainer {
     }
 
     private fun loadDictionary(): List<Word> {
-        try {
             val dictionary = mutableListOf<Word>()
             val wordsFile = File(FILE_NAME)
 
@@ -63,9 +68,6 @@ class LearnWordsTrainer {
                 dictionary.add(word)
             }
             return dictionary
-        } catch (e: Exception) {
-            throw IllegalStateException("Некорректный файл: $e")
-        }
     }
 
     private fun saveDictionary(words: List<Word>) {
