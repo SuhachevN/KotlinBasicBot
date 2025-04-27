@@ -26,21 +26,21 @@ class LearnWordsTrainer(private val learnedAnswerCount: Int = 3, private val cou
 
     fun getNextQuestion(): Question? {
         val notLearnedList = dictionary.filter { it.correctAnswersCount < learnedAnswerCount }
-        if (notLearnedList.isEmpty()) return null
-        val questionWords = if (notLearnedList.size < countOfQuestionsWords) {
-            val learnedList = dictionary.filter {it.correctAnswersCount >= learnedAnswerCount}.shuffled()
-            notLearnedList.shuffled().take(countOfQuestionsWords) + learnedList.take(countOfQuestionsWords - notLearnedList.size)
+        return if (notLearnedList.isNotEmpty()) {
+            val correctAnswer = notLearnedList.random()
+            val allOtherWords = dictionary - correctAnswer
+            val otherAnswers = allOtherWords.shuffled().take(countOfQuestionsWords - 1)
+            val variants = mutableListOf(correctAnswer).apply {
+                addAll(otherAnswers)
+                shuffle()
+            }
+            question = Question(variants, correctAnswer)
+            question
         } else {
-            notLearnedList.shuffled().take(countOfQuestionsWords)
-        }.shuffled()
-
-        val correctAnswer = questionWords.random()
-        question = Question(
-            variants = questionWords,
-            correctAnswer = correctAnswer,
-        )
-        return question
+            null
+        }
     }
+
 
     fun checkAnswer(userAnswerIndex: Int?): Boolean {
         val currentQuestion = question ?: return false
@@ -77,5 +77,4 @@ class LearnWordsTrainer(private val learnedAnswerCount: Int = 3, private val cou
             wordsFile.appendText("${word.word}|${word.translation}|${word.correctAnswersCount}\n")
         }
     }
-
 }
