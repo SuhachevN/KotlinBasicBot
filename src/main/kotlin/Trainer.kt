@@ -13,28 +13,34 @@ data class Question(
     val correctAnswer: Word,
 )
 
-class LearnWordsTrainer {
+class LearnWordsTrainer(private val learnedAnswerCount: Int = 3, private val countOfQuestionsWords: Int = 4) {
     private var question: Question? = null
     private val dictionary = loadDictionary()
 
     fun getStatistics(): Statistics {
         val totalCount = dictionary.size
-        val learnedCount = dictionary.count { it.correctAnswersCount >= LEARNED_THRESHOLD }
+        val learnedCount = dictionary.count { it.correctAnswersCount >= learnedAnswerCount }
         val percent = learnedCount.toPercentOf(totalCount)
         return Statistics(totalCount, learnedCount, percent)
     }
 
     fun getNextQuestion(): Question? {
-        val notLearnedList = dictionary.filter { it.correctAnswersCount < LEARNED_THRESHOLD }
-        if (notLearnedList.isEmpty()) return null
-        val questionWords = notLearnedList.shuffled().take(OPTIONS_COUNT)
-        val correctAnswer = questionWords.random()
-        question = Question(
-            variants = questionWords,
-            correctAnswer = correctAnswer,
-        )
-        return question
+        val notLearnedList = dictionary.filter { it.correctAnswersCount < learnedAnswerCount }
+        return if (notLearnedList.isNotEmpty()) {
+            val correctAnswer = notLearnedList.random()
+            val allOtherWords = dictionary - correctAnswer
+            val otherAnswers = allOtherWords.shuffled().take(countOfQuestionsWords - 1)
+            val variants = mutableListOf(correctAnswer).apply {
+                addAll(otherAnswers)
+                shuffle()
+            }
+            question = Question(variants, correctAnswer)
+            question
+        } else {
+            null
+        }
     }
+
 
     fun checkAnswer(userAnswerIndex: Int?): Boolean {
         val currentQuestion = question ?: return false
@@ -49,7 +55,6 @@ class LearnWordsTrainer {
     }
 
     private fun loadDictionary(): List<Word> {
-        try {
             val dictionary = mutableListOf<Word>()
             val wordsFile = File(FILE_NAME)
 
@@ -63,9 +68,6 @@ class LearnWordsTrainer {
                 dictionary.add(word)
             }
             return dictionary
-        } catch (e: Exception) {
-            throw IllegalStateException("Некорректный файл: $e")
-        }
     }
 
     private fun saveDictionary(words: List<Word>) {
@@ -75,5 +77,4 @@ class LearnWordsTrainer {
             wordsFile.appendText("${word.word}|${word.translation}|${word.correctAnswersCount}\n")
         }
     }
-
 }
