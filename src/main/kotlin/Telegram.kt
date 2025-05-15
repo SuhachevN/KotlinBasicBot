@@ -44,4 +44,3 @@ fun main(args: Array<String>) {
         println("Ошибка при получении обновлений.")
     }
 }
-
